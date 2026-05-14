@@ -1,4 +1,5 @@
 import * as core from "@actions/core";
+import { FindLatest } from "./resolve-version";
 
 async function run(): Promise<void> {
   try {
@@ -8,6 +9,7 @@ async function run(): Promise<void> {
     core.info(`Requested Harbor CLI version: ${version}`);
     core.info(`Build from main: ${buildFromMain}`);
     core.info(`Running on platform: ${process.platform}, architecture: ${process.arch}`);
+    await FindLatest();
 
     // TODO:
     // 1. Resolve latest version if version === "latest"
