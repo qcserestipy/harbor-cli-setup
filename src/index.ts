@@ -1,4 +1,5 @@
 import * as core from "@actions/core";
+import * as exec from "@actions/exec";
 import { DetectPlatform } from "./platform.js";
 import { FindLatest } from "./git-actions.js";
 import { DownloadAndExtractRelease, DownloadChecksum } from "./download.js";
@@ -56,6 +57,8 @@ async function run(): Promise<void> {
 
     core.info(`Added Harbor CLI install directory to PATH: ${installDir}`);
     core.info(`Harbor CLI binary path: ${binaryPath}`);
+
+    await exec.exec(binaryPath, ["version"]);
 
 
   } catch (error) {
