@@ -52,7 +52,7 @@ jobs:
       - name: Setup Go Compiler
         uses: actions/setup-go@v6
         with:
-          go-version: '1.x'
+          go-version: '1.26.x'
           cache: true
 
       - name: Build Harbor CLI from source
