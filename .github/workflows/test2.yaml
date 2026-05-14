@@ -33,17 +33,17 @@ jobs:
         - name: Build Harbor CLI latest
           uses: ./
 
-  # test-build-from-source:
-  #   strategy:
-  #     fail-fast: false
-  #     matrix:
-  #       os:
-  #         - ubuntu-latest
-  #   runs-on: ${{ matrix.os }}
-  #   steps:
-  #     - uses: actions/checkout@v4
+  test-build-from-source:
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
 
-  #     - name: Build Harbor CLI from source
-  #       uses: ./
-  #       with:
-  #         build-from-source: 'true'
+      - name: Build Harbor CLI from source
+        uses: ./
+        with:
+          build-from-source: 'true'
