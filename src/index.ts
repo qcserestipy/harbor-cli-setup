@@ -26,7 +26,6 @@ async function run(): Promise<void> {
     core.info(`Requested Harbor CLI version: ${desiredVersion}`);
     core.info(`Build from source: ${buildFromSource}`);
 
-
     const resolvedVersion = await FindLatest(desiredVersion);
     core.debug(`Resolved version: ${resolvedVersion}`);
 
