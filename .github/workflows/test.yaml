@@ -33,24 +33,45 @@ jobs:
         - name: Build Harbor CLI latest
           uses: ./
 
+  test-build-from-source:
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+          - ubuntu-24.04
+          - ubuntu-22.04
+          - macos-latest
+          - macos-15
+          - windows-latest
+          - windows-2022
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Harbor CLI from source
+        uses: ./
+        with:
+          build-from-source: 'true'
+
   test-failed-version:
     runs-on: ubuntu-latest
     steps:
-        - uses: actions/checkout@v4
-        
-        - name: Build Harbor CLI non existent version (should fail)
-          id: test-fail
-          continue-on-error: true
-          uses: ./
-          with:
-            version: 9999.0.0
-        
-        - name: Verify failure occurred
-          if: steps.test-fail.outcome == 'success'
-          run: |
-            echo "ERROR: Expected step to fail but it succeeded"
+      - uses: actions/checkout@v4
+
+      - name: Build Harbor CLI non existent version
+        id: test-fail
+        continue-on-error: true
+        uses: ./
+        with:
+          version: 9999.0.0
+
+      - name: Assert action failed
+        shell: bash
+        run: |
+          if [[ "${{ steps.test-fail.outcome }}" != "failure" ]]; then
+            echo "ERROR: Expected action to fail, but outcome was '${{ steps.test-fail.outcome }}'"
             exit 1
-        
-        - name: Verify expected failure
-          if: failure()
-          run: echo "Step failed as expected"
+          fi
+
+          echo "Step failed as expected"
