@@ -29,7 +29,7 @@ export async function InstallHarborCli(
   installDir: string,
   isWindows: boolean
 ): Promise<string> {
-  const binaryName = isWindows ? "harbor-cli.exe" : "harbor-cli";
+  const binaryName = "harbor-cli";
 
   const foundBinary = await findFileByName(extractDir, binaryName);
 

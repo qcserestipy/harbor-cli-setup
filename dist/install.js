@@ -18,7 +18,7 @@ async function findFileByName(dir, fileName) {
     return undefined;
 }
 export async function InstallHarborCli(extractDir, installDir, isWindows) {
-    const binaryName = isWindows ? "harbor-cli.exe" : "harbor-cli";
+    const binaryName = "harbor-cli";
     const foundBinary = await findFileByName(extractDir, binaryName);
     if (!foundBinary) {
         throw new Error(`Could not find ${binaryName} binary in ${extractDir}`);
