@@ -91,7 +91,7 @@ runs:
         INSTALL_DIR="${HOME}/.local/bin"
         mkdir -p "$INSTALL_DIR"
         if [[ "$EXT" == "tar.gz" ]]; then
-          tar -xzf "$ASSET" -C "$INSTALL_DIR" harbor-cli
+          tar -xzf "$ASSET" --strip-components=1 -C "$INSTALL_DIR"
         else
           unzip -jo "$ASSET" "*.exe" -d "$INSTALL_DIR"
         fi
