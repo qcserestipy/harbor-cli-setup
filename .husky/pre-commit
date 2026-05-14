@@ -1,0 +1,6 @@
+npm run build
+
+if ! git diff --quiet -- dist; then
+  echo "dist/ changed after build. Staging generated files..."
+  git add dist
+fi
