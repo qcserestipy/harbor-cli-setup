@@ -45,7 +45,7 @@ steps:
   - uses: actions/checkout@v4
   
   - name: Setup Harbor CLI
-    uses: qcserestipy/harbor-cli-setup@v0.0.1
+    uses: qcserestipy/harbor-cli-setup@0.0.2
     id: harbor-cli
   
   - name: Use Harbor CLI
@@ -60,7 +60,7 @@ steps:
   - uses: actions/checkout@v4
   
   - name: Setup Harbor CLI
-    uses: qcserestipy/harbor-cli-setup@v0.0.1
+    uses: qcserestipy/harbor-cli-setup@0.0.2
     id: harbor-cli
     with:
       version: 'v0.0.19'
@@ -83,7 +83,7 @@ steps:
       go-version: '1.26.x'
 
   - name: Setup Harbor CLI (from source)
-    uses: qcserestipy/harbor-cli-setup@v0.0.1
+    uses: qcserestipy/harbor-cli-setup@0.0.2
     id: harbor-cli
     with:
       version: 'v0.0.19'
@@ -105,7 +105,7 @@ steps:
       go-version: '1.26.x'
 
   - name: Setup Harbor CLI (from main)
-    uses: qcserestipy/harbor-cli-setup@v0.0.1
+    uses: qcserestipy/harbor-cli-setup@0.0.2
     id: harbor-cli
     with:
       version: 'main'
@@ -131,7 +131,7 @@ jobs:
       - uses: actions/checkout@v4
       
       - name: Setup Harbor CLI
-        uses: qcserestipy/harbor-cli-setup@v0.0.1
+        uses: qcserestipy/harbor-cli-setup@0.0.2
         id: harbor-cli
         with:
           version: 'latest'
