@@ -24,42 +24,7 @@ async function run(): Promise<void> {
 
 
     const resolvedVersion = await FindLatest(desiredVersion);
-    core.info(`Resolved version: ${resolvedVersion}`);
-
-
-    // const platform = DetectPlatform();
-    // const [releaseOutputPath, downloadedPath] = await DownloadAndExtractRelease(resolvedVersion, buildFromSource, platform);
-    // core.info(`Downloaded release tarball to: ${downloadedPath}`);
-
-    // let installDir: string = "";
-    // let binaryPath: string = "";
-    // if (!buildFromSource) {
-    //   const releaseChecksum = await CalculateSha256(downloadedPath);
-    //   core.info(`Calculated SHA-256 checksum for release: ${releaseChecksum}`);
-    //   const checksumPath = await DownloadChecksum(resolvedVersion);
-    //   core.info(`Downloaded checksum file to: ${checksumPath}`);
-    //   const checksums = await ReadChecksumFile(checksumPath);
-    //   const isValid = await VerifyChecksum(resolvedVersion, platform, checksums, releaseChecksum);
-    //   if (!isValid) {
-    //     throw new Error(`Checksum verification failed for version ${resolvedVersion} on platform ${platform.osName}/${platform.arch}`);
-    //   }
-    //   core.info(`Checksum verification succeeded for version ${resolvedVersion} on platform ${platform.osName}/${platform.arch}`);
-    //   const runnerTemp = process.env.RUNNER_TEMP || "./downloads";
-    //   installDir = path.join(runnerTemp, "harbor-cli-bin");
-    //   binaryPath = await InstallHarborCli(
-    //     releaseOutputPath,
-    //     installDir,
-    //     platform.osName === "windows"
-    //   );
-    // }
-
-    // core.addPath(installDir);
-    // core.setOutput("path", binaryPath);
-
-    // core.info(`Added Harbor CLI install directory to PATH: ${installDir}`);
-    // core.info(`Harbor CLI binary path: ${binaryPath}`);
-
-    // await exec.exec(binaryPath, ["version"]);
+    core.debug(`Resolved version: ${resolvedVersion}`);
 
     const platform = DetectPlatform();
 
@@ -83,13 +48,13 @@ async function run(): Promise<void> {
         platform
       );
 
-      core.info(`Downloaded release tarball to: ${downloadedPath}`);
+      core.debug(`Downloaded release tarball to: ${downloadedPath}`);
 
       const releaseChecksum = await CalculateSha256(downloadedPath);
-      core.info(`Calculated SHA-256 checksum for release: ${releaseChecksum}`);
+      core.debug(`Calculated SHA-256 checksum for release: ${releaseChecksum}`);
 
       const checksumPath = await DownloadChecksum(resolvedVersion);
-      core.info(`Downloaded checksum file to: ${checksumPath}`);
+      core.debug(`Downloaded checksum file to: ${checksumPath}`);
 
       const checksums = await ReadChecksumFile(checksumPath);
 
@@ -106,7 +71,7 @@ async function run(): Promise<void> {
         );
       }
 
-      core.info(
+      core.debug(
         `Checksum verification succeeded for version ${resolvedVersion} on platform ${platform.osName}/${platform.arch}`
       );
 

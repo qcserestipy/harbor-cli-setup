@@ -28,11 +28,11 @@ export async function DownloadAndExtractRelease(
     const assetName = AssetName(version, platform);
     tarballUrl = `https://github.com/${owner}/${repo}/releases/download/${version}/${assetName}`;
   }
-  core.info(`Downloading ${tarballUrl}`);
+  core.debug(`Downloading ${tarballUrl}`);
   const downloadedPath = await tc.downloadTool(tarballUrl);
-  core.info(`Downloaded archive to ${downloadedPath} `);
+  core.debug(`Downloaded archive to ${downloadedPath} `);
   const extractedPath = await tc.extractTar(downloadedPath);
-  core.info(`Extracted archive to ${extractedPath} `);
+  core.debug(`Extracted archive to ${extractedPath} `);
   return [extractedPath, downloadedPath];
 }
 
@@ -41,6 +41,6 @@ export async function DownloadChecksum(version: string): Promise<string> {
   // e.g. https://github.com/goharbor/harbor-cli/releases/download/v0.0.19/checksums.txt
   const checksumUrl = `https://github.com/${owner}/${repo}/releases/download/${version}/checksums.txt`;
   const downloadedPath = await tc.downloadTool(checksumUrl);
-  core.info(`Downloaded checksum file to ${downloadedPath}`);
+  core.debug(`Downloaded checksum file to ${downloadedPath}`);
   return downloadedPath;
 }
