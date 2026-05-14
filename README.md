@@ -6,13 +6,13 @@ A GitHub Action that downloads, verifies, and installs the Harbor CLI tool from 
 
 This action downloads a pre-built Harbor CLI binary for the current runner platform, verifies its SHA-256 checksum against the official `checksums.txt` published with every release, and adds it to `PATH`. It supports both specific versions and the latest release.
 
-Alternatively, set `build-from-source: true` to clone the latest `main` branch and compile harbor-cli with Go 1.26 and Go module caching enabled.
+Alternatively, set `build_from_source: 'true'` to build the selected release version from source. Requires Go to be set up in your workflow before calling this action.
 
 ## Features
 
 - 🚀 Download any version of Harbor CLI or the latest release
 - 🔒 SHA-256 checksum verification against the official `checksums.txt`
-- 🔨 Optional source build from `main` using Go 1.26 with module cache
+- 🔨 Optional source build of the selected release version
 - ✅ Automatic version validation
 - 🎯 Cross-platform support (Linux, macOS, Windows — amd64 & arm64)
 - ⚡ No Go toolchain required for binary installs
@@ -21,8 +21,8 @@ Alternatively, set `build-from-source: true` to clone the latest `main` branch a
 
 | Input | Description | Required | Default |
 |-------|-------------|----------|---------|
-| `version` | Semver tag (e.g. `v0.0.8`) or `latest`. Ignored when `build-from-source` is `true`. | No | `latest` |
-| `build-from-source` | Clone the latest `main` branch and build from source using Go 1.26. | No | `false` |
+| `version` | Semver tag (e.g. `v0.0.8`) or `latest`. Ignored when `build_from_source` is `true`. | No | `latest` |
+| `build_from_source` | Build the selected release version from source instead of downloading a pre-built binary. Requires Go to be set up before calling this action. | No | `false` |
 
 ## Outputs
 
@@ -40,7 +40,7 @@ steps:
   - uses: actions/checkout@v4
   
   - name: Setup Harbor CLI
-    uses: qcserestipy/harbor-cli-setup@v1
+    uses: qcserestipy/harbor-cli-setup@v0.0.1
     id: harbor-cli
   
   - name: Use Harbor CLI
@@ -55,7 +55,7 @@ steps:
   - uses: actions/checkout@v4
   
   - name: Setup Harbor CLI
-    uses: qcserestipy/harbor-cli-setup@v1
+    uses: qcserestipy/harbor-cli-setup@v0.0.1
     id: harbor-cli
     with:
       version: 'v0.0.8'
@@ -66,17 +66,23 @@ steps:
       harbor-cli --help
 ```
 
-### Build from Source (latest main)
+### Build from Source
 
 ```yaml
 steps:
   - uses: actions/checkout@v4
 
+  - name: Setup Go
+    uses: actions/setup-go@v6
+    with:
+      go-version: '1.x'
+
   - name: Setup Harbor CLI (from source)
-    uses: qcserestipy/harbor-cli-setup@v1
+    uses: qcserestipy/harbor-cli-setup@v0.0.1
     id: harbor-cli
     with:
-      build-from-source: 'true'
+      version: 'v0.0.1'
+      build_from_source: 'true'
 
   - name: Use Harbor CLI
     run: harbor-cli version
@@ -98,7 +104,7 @@ jobs:
       - uses: actions/checkout@v4
       
       - name: Setup Harbor CLI
-        uses: qcserestipy/harbor-cli-setup@v1
+        uses: qcserestipy/harbor-cli-setup@v0.0.1
         id: harbor-cli
         with:
           version: 'latest'
@@ -116,9 +122,8 @@ jobs:
 
 ## Prerequisites
 
-- Git must be available in the runner (present on all GitHub-hosted runners)
 - Internet access to reach `github.com`
-- **Build-from-source only**: Go 1.26 is set up automatically by the action via `actions/setup-go`
+- **`build_from_source` only**: Go must be set up in your workflow **before** calling this action (e.g. via `actions/setup-go`)
 
 ## Error Handling
 
