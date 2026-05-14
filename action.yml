@@ -8,7 +8,7 @@ inputs:
     required: false
     default: "latest"
 
-  build-from-main:
+  build_from_main:
     description: "Build Harbor CLI from the latest main branch instead of downloading a release"
     required: false
     default: "false"

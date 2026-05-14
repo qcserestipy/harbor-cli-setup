@@ -1,54 +1,43 @@
-"use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
-Object.defineProperty(exports, "__esModule", { value: true });
-const core = __importStar(require("@actions/core"));
-const resolve_version_1 = require("./resolve-version");
+import * as core from "@actions/core";
+import { DetectPlatform } from "./platform.js";
+import { FindLatest } from "./git-actions.js";
+import { DownloadAndExtractRelease, DownloadChecksum } from "./download.js";
+import { CalculateSha256, ReadChecksumFile, VerifyChecksum } from "./checksums.js";
+import { InstallHarborCli } from "./install.js";
+import * as path from "node:path";
 async function run() {
     try {
-        const version = core.getInput("version");
-        const buildFromMain = core.getBooleanInput("build-from-main");
-        core.info(`Requested Harbor CLI version: ${version}`);
-        core.info(`Build from main: ${buildFromMain}`);
-        core.info(`Running on platform: ${process.platform}, architecture: ${process.arch}`);
-        await (0, resolve_version_1.FindLatest)();
-        // TODO:
-        // 1. Resolve latest version if version === "latest"
-        // 2. Download Harbor CLI release asset
-        // 3. Verify checksum or signature
-        // 4. Install binary into tool cache
-        // 5. Add binary path to PATH
+        const desiredVersion = core.getInput("version");
+        const pattern = "^(?:latest|v?[0-9]+\\.[0-9]+\\.[0-9]+(?:-[0-9A-Za-z.-]+)?)$";
+        if (!new RegExp(pattern).test(desiredVersion)) {
+            core.setFailed(`Invalid version format: ${desiredVersion}. Expected 'latest' or a semantic version like 'v1.2.3'.`);
+            return;
+        }
+        const buildFromSource = core.getBooleanInput("build_from_source");
+        core.info(`Requested Harbor CLI version: ${desiredVersion}`);
+        core.info(`Build from source: ${buildFromSource}`);
+        const resolvedVersion = await FindLatest(desiredVersion);
+        core.info(`Resolved version: ${resolvedVersion}`);
+        const platform = DetectPlatform();
+        const [releaseOutputPath, downloadedPath] = await DownloadAndExtractRelease(resolvedVersion, buildFromSource, platform);
+        core.info(`Downloaded release tarball to: ${downloadedPath}`);
+        const releaseChecksum = await CalculateSha256(downloadedPath);
+        core.info(`Calculated SHA-256 checksum for release: ${releaseChecksum}`);
+        const checksumPath = await DownloadChecksum(resolvedVersion);
+        core.info(`Downloaded checksum file to: ${checksumPath}`);
+        const checksums = await ReadChecksumFile(checksumPath);
+        const isValid = await VerifyChecksum(resolvedVersion, platform, checksums, releaseChecksum);
+        if (!isValid) {
+            throw new Error(`Checksum verification failed for version ${resolvedVersion} on platform ${platform.osName}/${platform.arch}`);
+        }
+        core.info(`Checksum verification succeeded for version ${resolvedVersion} on platform ${platform.osName}/${platform.arch}`);
+        const runnerTemp = process.env.RUNNER_TEMP || "./downloads";
+        const installDir = path.join(runnerTemp, "harbor-cli-bin");
+        const binaryPath = await InstallHarborCli(releaseOutputPath, installDir, platform.osName === "windows");
+        core.addPath(installDir);
+        core.setOutput("path", binaryPath);
+        core.info(`Added Harbor CLI install directory to PATH: ${installDir}`);
+        core.info(`Harbor CLI binary path: ${binaryPath}`);
     }
     catch (error) {
         if (error instanceof Error) {
