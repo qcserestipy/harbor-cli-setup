@@ -11,14 +11,18 @@ import * as path from "node:path";
 async function run(): Promise<void> {
   try {
     const desiredVersion = core.getInput("version");
-    const pattern = "^(?:latest|v?[0-9]+\\.[0-9]+\\.[0-9]+(?:-[0-9A-Za-z.-]+)?)$";
+    const pattern = "^(?:main|latest|v?[0-9]+\\.[0-9]+\\.[0-9]+(?:-[0-9A-Za-z.-]+)?)$";
     if (!new RegExp(pattern).test(desiredVersion)) {
       core.setFailed(
-        `Invalid version format: ${desiredVersion}. Expected 'latest' or a semantic version like 'v1.2.3'.`
+        `Invalid version format: ${desiredVersion}. Expected 'main', 'latest' or a semantic version like 'v1.2.3'.`
       );
       return;
     }
     const buildFromSource = core.getBooleanInput("build_from_source");
+    if (!buildFromSource && desiredVersion === "main") {
+      core.setFailed(`Cannot download pre-built binaries when version is set to 'main'. Please specify a specific version or enable build from source.`);
+      return;
+    }
     core.info(`Requested Harbor CLI version: ${desiredVersion}`);
     core.info(`Build from source: ${buildFromSource}`);
 

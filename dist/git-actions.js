@@ -15,6 +15,9 @@ export async function FindLatest(desiredVersion) {
     if (desiredVersion === "latest") {
         return sorted[sorted.length - 1] || "";
     }
+    else if (desiredVersion === "main") {
+        return "main";
+    }
     else {
         const exactMatch = sorted.find((v) => v === desiredVersion);
         if (exactMatch) {

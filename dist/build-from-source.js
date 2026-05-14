@@ -20,7 +20,7 @@ export async function BuildHarborCliFromSource(version) {
     const runnerTemp = process.env.RUNNER_TEMP || "./downloads";
     const sourceDir = path.join(runnerTemp, "harbor-cli-src");
     const installDir = path.join(runnerTemp, "harbor-cli-bin");
-    const binaryPath = path.join(installDir, process.platform === "win32" ? "harbor-cli.exe" : "harbor-cli");
+    const binaryPath = path.resolve(installDir, process.platform === "win32" ? "harbor-cli.exe" : "harbor-cli");
     await fs.rm(sourceDir, { recursive: true, force: true });
     await fs.mkdir(runnerTemp, { recursive: true });
     await fs.mkdir(installDir, { recursive: true });

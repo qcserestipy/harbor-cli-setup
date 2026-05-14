@@ -60,6 +60,28 @@ jobs:
         with:
           build_from_source: 'true'
 
+  test-failed-main-and-not-build-from-source:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Harbor CLI with version 'main' but build_from_source false
+        id: test-fail-main
+        continue-on-error: true
+        uses: ./
+        with:
+          version: main
+          build_from_source: 'false'
+
+      - name: Assert action failed for main without build from source
+        shell: bash
+        run: |
+          if [[ "${{ steps.test-fail-main.outcome }}" != "failure" ]]; then
+            echo "ERROR: Expected action to fail, but outcome was '${{ steps.test-fail-main.outcome }}'"
+            exit 1
+          fi
+
+          echo "Step failed as expected for main without build from source"
 
   test-failed-version:
     runs-on: ubuntu-latest

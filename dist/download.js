@@ -16,8 +16,11 @@ export async function DownloadAndExtractRelease(version, buildFromSource, platfo
     const { owner, repo } = getOwnerAndRepo(RepoUrl);
     // e.g. https://github.com/goharbor/harbor-cli/releases/download/v0.0.19/harbor-cli_0.0.19_darwin_arm64.tar.gz
     let tarballUrl;
-    if (buildFromSource) {
+    if (buildFromSource && version !== "main") {
         tarballUrl = `https://github.com/${owner}/${repo}/archive/refs/tags/${version}.${platform.extension}`;
+    }
+    else if (buildFromSource && version === "main") {
+        tarballUrl = `https://github.com/${owner}/${repo}/archive/refs/heads/main.${platform.extension}`;
     }
     else {
         const assetName = AssetName(version, platform);
