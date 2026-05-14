@@ -80,11 +80,29 @@ runs:
         curl -fsSL -o checksums.txt  "${BASE_URL}/checksums.txt"
 
         # Verify SHA-256 checksum against the published checksums.txt
+        EXPECTED_SHA="$(
+          awk -v asset="$ASSET" '$2 == asset { print $1 }' checksums.txt
+        )"
+
+        if [[ -z "$EXPECTED_SHA" ]]; then
+          echo "::error::No checksum found for ${ASSET}"
+          echo "Available checksums:"
+          cat checksums.txt
+          exit 1
+        fi
+
         if command -v sha256sum &>/dev/null; then
-          grep "  ${ASSET}$" checksums.txt | sha256sum --check --strict -
+          ACTUAL_SHA="$(sha256sum "$ASSET" | awk '{ print $1 }')"
         else
           # macOS ships shasum instead of sha256sum
-          grep "  ${ASSET}$" checksums.txt | shasum -a 256 --check -
+          ACTUAL_SHA="$(shasum -a 256 "$ASSET" | awk '{ print $1 }')"
+        fi
+
+        if [[ "$ACTUAL_SHA" != "$EXPECTED_SHA" ]]; then
+          echo "::error::Checksum mismatch for ${ASSET}"
+          echo "Expected: ${EXPECTED_SHA}"
+          echo "Actual:   ${ACTUAL_SHA}"
+          exit 1
         fi
 
         # Extract binary to a stable install directory
