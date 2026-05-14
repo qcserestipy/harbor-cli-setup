@@ -27,7 +27,7 @@ async function run(): Promise<void> {
     core.info(`Build from source: ${buildFromSource}`);
 
     const resolvedVersion = await FindLatest(desiredVersion);
-    core.debug(`Resolved versiono: ${resolvedVersion}`);
+    core.debug(`Resolved version: ${resolvedVersion}`);
 
     const platform = DetectPlatform();
 
