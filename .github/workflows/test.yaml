@@ -29,7 +29,7 @@ jobs:
           - windows-2022
     runs-on: ${{ matrix.os }}
     steps:
-        - uses: actions/checkout@v4
+        - uses: actions/checkout@v6
 
         - name: Build Harbor CLI latest
           uses: ./
@@ -48,7 +48,7 @@ jobs:
           - windows-2022
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Setup Go Compiler
         uses: actions/setup-go@v6
@@ -64,7 +64,7 @@ jobs:
   test-failed-main-and-not-build-from-source:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Build Harbor CLI with version 'main' but build_from_source false
         id: test-fail-main
@@ -87,7 +87,7 @@ jobs:
   test-failed-version:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Build Harbor CLI non existent version
         id: test-fail
