@@ -1,0 +1,156 @@
+# Harbor CLI Setup Action
+
+A GitHub Action that downloads, verifies, and installs the Harbor CLI tool from official GitHub releases, or optionally builds it from the latest `main` branch.
+
+## Description
+
+This action downloads a pre-built Harbor CLI binary for the current runner platform, verifies its SHA-256 checksum against the official `checksums.txt` published with every release, and adds it to `PATH`. It supports both specific versions and the latest release.
+
+Alternatively, set `build-from-source: true` to clone the latest `main` branch and compile harbor-cli with Go 1.26 and Go module caching enabled.
+
+## Features
+
+- 🚀 Download any version of Harbor CLI or the latest release
+- 🔒 SHA-256 checksum verification against the official `checksums.txt`
+- 🔨 Optional source build from `main` using Go 1.26 with module cache
+- ✅ Automatic version validation
+- 🎯 Cross-platform support (Linux, macOS, Windows — amd64 & arm64)
+- ⚡ No Go toolchain required for binary installs
+
+## Inputs
+
+| Input | Description | Required | Default |
+|-------|-------------|----------|---------|
+| `version` | Semver tag (e.g. `v0.0.8`) or `latest`. Ignored when `build-from-source` is `true`. | No | `latest` |
+| `build-from-source` | Clone the latest `main` branch and build from source using Go 1.26. | No | `false` |
+
+## Outputs
+
+| Output | Description |
+|--------|-------------|
+| `version` | The version/tag that was installed or built |
+| `path` | Full path to the harbor-cli binary |
+
+## Usage
+
+### Basic Usage (Latest Version)
+
+```yaml
+steps:
+  - uses: actions/checkout@v4
+  
+  - name: Setup Harbor CLI
+    uses: qcserestipy/harbor-cli-setup@v1
+    id: harbor-cli
+  
+  - name: Use Harbor CLI
+    run: |
+      harbor-cli version
+```
+
+### Specific Version
+
+```yaml
+steps:
+  - uses: actions/checkout@v4
+  
+  - name: Setup Harbor CLI
+    uses: qcserestipy/harbor-cli-setup@v1
+    id: harbor-cli
+    with:
+      version: 'v0.0.8'
+  
+  - name: Use Harbor CLI
+    run: |
+      echo "Installed version: ${{ steps.harbor-cli.outputs.version }}"
+      harbor-cli --help
+```
+
+### Build from Source (latest main)
+
+```yaml
+steps:
+  - uses: actions/checkout@v4
+
+  - name: Setup Harbor CLI (from source)
+    uses: qcserestipy/harbor-cli-setup@v1
+    id: harbor-cli
+    with:
+      build-from-source: 'true'
+
+  - name: Use Harbor CLI
+    run: harbor-cli version
+```
+
+### Complete Workflow Example
+
+```yaml
+name: Harbor Deployment
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Harbor CLI
+        uses: qcserestipy/harbor-cli-setup@v1
+        id: harbor-cli
+        with:
+          version: 'latest'
+      
+      - name: Configure Harbor CLI
+        run: |
+          harbor-cli login ${{ secrets.HARBOR_URL }} \
+                --username ${{ secrets.HARBOR_USERNAME }} \
+                --password ${{ secrets.HARBOR_PASSWORD }}
+      
+      - name: List Artifacts
+        run: |
+          harbor-cli artifact list <project_name>/<repository_name> -ojson
+```
+
+## Prerequisites
+
+- Git must be available in the runner (present on all GitHub-hosted runners)
+- Internet access to reach `github.com`
+- **Build-from-source only**: Go 1.26 is set up automatically by the action via `actions/setup-go`
+
+## Error Handling
+
+The action will fail in the following scenarios:
+
+- **Invalid version**: The specified tag does not exist in the Harbor CLI repository
+- **Checksum mismatch**: The downloaded archive does not match the SHA-256 digest in `checksums.txt`
+- **Unsupported platform**: The runner OS or architecture has no matching release asset
+- **Build failure**: The Go build fails (source build only)
+
+## Supported Platforms
+
+| Runner | Architecture |
+|--------|--------------|
+| `ubuntu-*` | amd64, arm64 |
+| `macos-*` | amd64 (Intel), arm64 (Apple Silicon) |
+| `windows-*` | amd64, arm64 |
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Related
+
+- [Harbor CLI Repository](https://github.com/goharbor/harbor-cli)
+- [Harbor Project](https://goharbor.io/)
+- [GitHub Actions Documentation](https://docs.github.com/en/actions)
+
+## Support
+
+If you encounter any issues or have questions, please [open an issue](https://github.com/qcserestipy/harbor-cli-setup/issues) in this repository.
