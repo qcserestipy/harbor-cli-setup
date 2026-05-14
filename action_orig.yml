@@ -1,0 +1,192 @@
+name: 'Download & Install Harbor CLI'
+description: 'Download, verify, and install a specific (or latest) Harbor CLI release, or build from source'
+branding:
+  icon: 'package'
+  color: 'green'
+
+inputs:
+  version:
+    description: 'Semver tag (e.g. v0.0.18), or "latest". Ignored when build-from-source is true.'
+    required: false
+    default: 'latest'
+    pattern: '^(?:latest|v?[0-9]+\.[0-9]+\.[0-9]+(?:-[0-9A-Za-z.-]+)?)$'
+  build-from-source:
+    description: 'Clone the latest main branch and build harbor-cli from source using Go 1.26.'
+    required: false
+    default: 'false'
+
+outputs:
+  version:
+    description: 'The version/tag that was installed or built'
+    value: ${{ steps.resolve.outputs.tag || steps.build.outputs.tag }}
+  path:
+    description: 'Full path to the harbor-cli binary'
+    value: ${{ steps.install.outputs.path || steps.build.outputs.path }}
+
+runs:
+  using: 'composite'
+  steps:
+
+    - name: Resolve version
+      id: resolve
+      if: inputs.build-from-source != 'true'
+      shell: bash
+      run: |
+        REPO='https://github.com/goharbor/harbor-cli.git'
+        if [[ "${{ inputs.version }}" == "latest" ]]; then
+          TAG=$(
+            git ls-remote --tags --sort='v:refname' "$REPO" |
+            grep -v '\^{}' | tail -n1 | awk -F/ '{print $3}'
+          )
+        else
+          TAG="${{ inputs.version }}"
+          [[ "$TAG" == v* ]] || TAG="v$TAG"
+        fi
+
+        git ls-remote --exit-code --refs "$REPO" "refs/tags/$TAG" \
+          || { echo "::error::Tag '$TAG' not found"; exit 1; }
+
+        echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+
+    - name: Download, verify & install
+      id: install
+      if: inputs.build-from-source != 'true'
+      shell: bash
+      run: |
+        TAG="${{ steps.resolve.outputs.tag }}"
+        VER="${TAG#v}"
+
+        case "${{ runner.os }}" in
+          Linux)   OS=linux   ;;
+          macOS)   OS=darwin  ;;
+          Windows) OS=windows ;;
+          *) echo "::error::Unsupported OS: ${{ runner.os }}"; exit 1 ;;
+        esac
+        case "${{ runner.arch }}" in
+          X64)   ARCH=amd64 ;;
+          ARM64) ARCH=arm64 ;;
+          *) echo "::error::Unsupported arch: ${{ runner.arch }}"; exit 1 ;;
+        esac
+
+        EXT="tar.gz"
+        [[ "$OS" == "windows" ]] && EXT="zip"
+        ASSET="harbor-cli_${VER}_${OS}_${ARCH}.${EXT}"
+        BASE_URL="https://github.com/goharbor/harbor-cli/releases/download/${TAG}"
+
+        WORKDIR=$(mktemp -d)
+        cd "$WORKDIR"
+
+        curl -fsSL -o "$ASSET"       "${BASE_URL}/${ASSET}"
+        curl -fsSL -o checksums.txt  "${BASE_URL}/checksums.txt"
+
+        # Verify SHA-256 checksum against the published checksums.txt
+        EXPECTED_SHA="$(
+          awk -v asset="$ASSET" '$2 == asset { print $1 }' checksums.txt
+        )"
+
+        if [[ -z "$EXPECTED_SHA" ]]; then
+          echo "::error::No checksum found for ${ASSET}"
+          echo "Available checksums:"
+          cat checksums.txt
+          exit 1
+        fi
+
+        if command -v sha256sum &>/dev/null; then
+          ACTUAL_SHA="$(sha256sum "$ASSET" | awk '{ print $1 }')"
+        else
+          # macOS ships shasum instead of sha256sum
+          ACTUAL_SHA="$(shasum -a 256 "$ASSET" | awk '{ print $1 }')"
+        fi
+
+        if [[ "$ACTUAL_SHA" != "$EXPECTED_SHA" ]]; then
+          echo "::error::Checksum mismatch for ${ASSET}"
+          echo "Expected: ${EXPECTED_SHA}"
+          echo "Actual:   ${ACTUAL_SHA}"
+          exit 1
+        fi
+
+        # Extract binary to a stable install directory
+        INSTALL_DIR="${HOME}/.local/bin"
+        mkdir -p "$INSTALL_DIR"
+
+        EXTRACT_DIR="${WORKDIR}/extract"
+        mkdir -p "$EXTRACT_DIR"
+
+        if [[ "$EXT" == "tar.gz" ]]; then
+          tar -xzf "$ASSET" -C "$EXTRACT_DIR"
+        else
+          unzip -q "$ASSET" -d "$EXTRACT_DIR"
+        fi
+
+        FOUND_BINARY="$(find "$EXTRACT_DIR" -type f -name "harbor-cli" | head -n1)"
+
+        if [[ -z "$FOUND_BINARY" ]]; then
+          echo "::error::Could not find harbor-cli binary in ${ASSET}"
+          echo "Archive contents:"
+          if [[ "$EXT" == "tar.gz" ]]; then
+            tar -tzf "$ASSET"
+          else
+            unzip -l "$ASSET"
+          fi
+          exit 1
+        fi
+
+        if [[ "$OS" == "windows" ]]; then
+          BINARY="${INSTALL_DIR}/harbor-cli.exe"
+        else
+          BINARY="${INSTALL_DIR}/harbor-cli"
+        fi
+
+        cp "$FOUND_BINARY" "$BINARY"
+        chmod +x "$BINARY" 2>/dev/null || true
+
+        echo "path=${BINARY}" >> "$GITHUB_OUTPUT"
+
+    - name: Add harbor-cli to PATH
+      if: inputs.build-from-source != 'true'
+      shell: bash
+      run: echo "${HOME}/.local/bin" >> "$GITHUB_PATH"
+
+    - name: Setup Go
+      if: inputs.build-from-source == 'true'
+      uses: actions/setup-go@v6
+      with:
+        go-version: '1.26'
+        cache: true
+
+    - name: Clone & build Harbor CLI from source
+      id: build
+      if: inputs.build-from-source == 'true'
+      shell: bash
+      run: |
+        git clone --depth 1 https://github.com/goharbor/harbor-cli.git harbor-cli-src
+        cd harbor-cli-src
+
+        TAG=$(git describe --tags --always --dirty)
+        GV=$(go version | awk '{print $3}')
+        T=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+        C=$(git rev-parse HEAD)
+
+        INSTALL_DIR="${HOME}/.local/bin"
+        mkdir -p "$INSTALL_DIR"
+        BINARY="${INSTALL_DIR}/harbor-cli"
+
+        go build -ldflags "\
+          -X github.com/goharbor/harbor-cli/cmd/harbor/internal/version.Version=$TAG \
+          -X github.com/goharbor/harbor-cli/cmd/harbor/internal/version.GoVersion=$GV \
+          -X github.com/goharbor/harbor-cli/cmd/harbor/internal/version.BuildTime=$T \
+          -X github.com/goharbor/harbor-cli/cmd/harbor/internal/version.GitCommit=$C" \
+          -o "$BINARY" cmd/harbor/main.go
+        chmod +x "$BINARY"
+
+        echo "tag=$TAG"        >> "$GITHUB_OUTPUT"
+        echo "path=${BINARY}"  >> "$GITHUB_OUTPUT"
+
+    - name: Add harbor-cli to PATH (source build)
+      if: inputs.build-from-source == 'true'
+      shell: bash
+      run: echo "${HOME}/.local/bin" >> "$GITHUB_PATH"
+
+    - name: Print Harbor CLI version
+      shell: bash
+      run: harbor-cli version
