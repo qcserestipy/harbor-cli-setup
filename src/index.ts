@@ -7,6 +7,7 @@ async function run(): Promise<void> {
 
     core.info(`Requested Harbor CLI version: ${version}`);
     core.info(`Build from main: ${buildFromMain}`);
+    core.info(`Running on platform: ${process.platform}, architecture: ${process.arch}`);
 
     // TODO:
     // 1. Resolve latest version if version === "latest"
