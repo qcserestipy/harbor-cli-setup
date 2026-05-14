@@ -6,13 +6,13 @@ A GitHub Action that downloads, verifies, and installs the Harbor CLI tool from 
 
 This action downloads a pre-built Harbor CLI binary for the current runner platform, verifies its SHA-256 checksum against the official `checksums.txt` published with every release, and adds it to `PATH`. It supports both specific versions and the latest release.
 
-Alternatively, set `build_from_source: 'true'` to build the selected release version from source. Requires Go to be set up in your workflow before calling this action.
+Alternatively, set `build_from_source: 'true'` to build from source instead of downloading a pre-built binary. Works with any `version` value, a release tag, `latest`, or `main`. Requires Go to be set up in your workflow before calling this action.
 
 ## Features
 
 - 🚀 Download any version of Harbor CLI or the latest release
 - 🔒 SHA-256 checksum verification against the official `checksums.txt`
-- 🔨 Optional source build of the selected release version
+- 🔨 Optional source build — any release tag or `main`
 - ✅ Automatic version validation
 - 🎯 Cross-platform support (Linux, macOS, Windows — amd64 & arm64)
 - ⚡ No Go toolchain required for binary installs
@@ -21,8 +21,8 @@ Alternatively, set `build_from_source: 'true'` to build the selected release ver
 
 | Input | Description | Required | Default |
 |-------|-------------|----------|---------|
-| `version` | Semver tag (e.g. `v0.0.8`) or `latest`. Ignored when `build_from_source` is `true`. | No | `latest` |
-| `build_from_source` | Build the selected release version from source instead of downloading a pre-built binary. Requires Go to be set up before calling this action. | No | `false` |
+| `version` | Semver tag (e.g. `v0.0.1`), `latest`, or `main`. `main` is only valid when `build_from_source` is `true`. | No | `latest` |
+| `build_from_source` | Build from source instead of downloading a pre-built binary. Works with any version value: release tag, `latest`, or `main`. Requires Go to be set up before calling this action. | No | `false` |
 
 ## Outputs
 
@@ -66,7 +66,7 @@ steps:
       harbor-cli --help
 ```
 
-### Build from Source
+### Build Release from Source
 
 ```yaml
 steps:
@@ -82,6 +82,28 @@ steps:
     id: harbor-cli
     with:
       version: 'v0.0.1'
+      build_from_source: 'true'
+
+  - name: Use Harbor CLI
+    run: harbor-cli version
+```
+
+### Build main from Source
+
+```yaml
+steps:
+  - uses: actions/checkout@v4
+
+  - name: Setup Go
+    uses: actions/setup-go@v6
+    with:
+      go-version: '1.x'
+
+  - name: Setup Harbor CLI (from main)
+    uses: qcserestipy/harbor-cli-setup@v0.0.1
+    id: harbor-cli
+    with:
+      version: 'main'
       build_from_source: 'true'
 
   - name: Use Harbor CLI
@@ -148,7 +170,7 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the Apache 2.0 License - see the [LICENSE](LICENSE) file for details.
 
 ## Related
 
