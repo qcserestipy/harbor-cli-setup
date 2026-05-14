@@ -29,25 +29,24 @@ export async function InstallHarborCli(
   installDir: string,
   isWindows: boolean
 ): Promise<string> {
-  const binaryName = "harbor-cli";
+  const sourceBinaryName = "harbor-cli";
+  const targetBinaryName = isWindows ? "harbor-cli.exe" : "harbor-cli";
 
-  const foundBinary = await findFileByName(extractDir, binaryName);
+  const foundBinary = await findFileByName(extractDir, sourceBinaryName);
 
   if (!foundBinary) {
-    throw new Error(`Could not find ${binaryName} binary in ${extractDir}`);
+    throw new Error(`Could not find ${sourceBinaryName} binary in ${extractDir}`);
   }
 
   await fs.mkdir(installDir, { recursive: true });
 
-  const targetPath = path.join(installDir, binaryName);
+  const targetPath = path.join(installDir, targetBinaryName);
 
   await fs.copyFile(foundBinary, targetPath);
 
   if (!isWindows) {
     await fs.chmod(targetPath, 0o755);
   }
-
-  core.info(`Installed Harbor CLI to ${targetPath}`);
 
   return targetPath;
 }
