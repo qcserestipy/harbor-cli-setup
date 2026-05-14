@@ -46,4 +46,4 @@ jobs:
       - name: Build Harbor CLI from source
         uses: ./
         with:
-          build-from-source: 'true'
+          build_from_source: 'true'
