@@ -2,9 +2,13 @@ name: "Harbor CLI Setup"
 description: "Download, verify, and install the Harbor CLI"
 author: "Patrick Eschenbach"
 
+branding:
+  icon: 'package'
+  color: 'green'
+
 inputs:
   version:
-    description: "Harbor CLI version to install, for example v0.0.1 or latest"
+    description: "Harbor CLI version to install, for example v0.0.19 or latest"
     required: false
     default: "latest"
 

@@ -1,6 +1,6 @@
 {
   "name": "harbor-cli-setup",
-  "version": "1.0.0",
+  "version": "0.0.2",
   "description": "A GitHub Action that downloads, verifies, and installs the Harbor CLI tool from official GitHub releases, or optionally builds it from the latest main branch.",
   "main": "dist/index.js",
   "type": "module",

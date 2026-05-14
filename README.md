@@ -1,5 +1,10 @@
 # Harbor CLI Setup Action
 
+[![Tests](https://github.com/qcserestipy/harbor-cli-setup/actions/workflows/test.yaml/badge.svg)](https://github.com/qcserestipy/harbor-cli-setup/actions/workflows/test.yaml)
+[![GitHub release](https://img.shields.io/github/v/release/qcserestipy/harbor-cli-setup)](https://github.com/qcserestipy/harbor-cli-setup/releases)
+[![License](https://img.shields.io/github/license/qcserestipy/harbor-cli-setup)](LICENSE)
+[![GitHub Marketplace](https://img.shields.io/badge/Marketplace-Harbor%20CLI%20Setup-green?logo=github)](https://github.com/marketplace/actions/harbor-cli-setup)
+
 A GitHub Action that downloads, verifies, and installs the Harbor CLI tool from official GitHub releases, or optionally builds it from the latest `main` branch.
 
 ## Description
@@ -21,7 +26,7 @@ Alternatively, set `build_from_source: 'true'` to build from source instead of d
 
 | Input | Description | Required | Default |
 |-------|-------------|----------|---------|
-| `version` | Semver tag (e.g. `v0.0.1`), `latest`, or `main`. `main` is only valid when `build_from_source` is `true`. | No | `latest` |
+| `version` | Semver tag (e.g. `v0.0.19`), `latest`, or `main`. `main` is only valid when `build_from_source` is `true`. | No | `latest` |
 | `build_from_source` | Build from source instead of downloading a pre-built binary. Works with any version value: release tag, `latest`, or `main`. Requires Go to be set up before calling this action. | No | `false` |
 
 ## Outputs
@@ -58,7 +63,7 @@ steps:
     uses: qcserestipy/harbor-cli-setup@v0.0.1
     id: harbor-cli
     with:
-      version: 'v0.0.8'
+      version: 'v0.0.19'
   
   - name: Use Harbor CLI
     run: |
@@ -75,13 +80,13 @@ steps:
   - name: Setup Go
     uses: actions/setup-go@v6
     with:
-      go-version: '1.x'
+      go-version: '1.26.x'
 
   - name: Setup Harbor CLI (from source)
     uses: qcserestipy/harbor-cli-setup@v0.0.1
     id: harbor-cli
     with:
-      version: 'v0.0.1'
+      version: 'v0.0.19'
       build_from_source: 'true'
 
   - name: Use Harbor CLI
@@ -97,7 +102,7 @@ steps:
   - name: Setup Go
     uses: actions/setup-go@v6
     with:
-      go-version: '1.x'
+      go-version: '1.26.x'
 
   - name: Setup Harbor CLI (from main)
     uses: qcserestipy/harbor-cli-setup@v0.0.1
