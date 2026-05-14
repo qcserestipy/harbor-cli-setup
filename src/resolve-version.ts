@@ -5,7 +5,7 @@ const repoUrl = "https://github.com/goharbor/harbor-cli.git";
 
 export async function FindLatest(): Promise<void> {
   const status = await git.status();
-  const list = await git.listRemote(["--tags", "--sort='v:refname'", repoUrl]);
+  const list = await git.listRemote(["--tags", repoUrl]);
   console.log("Available versions:");
   list.split("\n").forEach((line) => {
     const match = line.match(/refs\/tags\/(v?\d+\.\d+\.\d+)/);
