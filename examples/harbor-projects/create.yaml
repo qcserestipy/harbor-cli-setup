@@ -1,0 +1,36 @@
+name: Setup Harbor CLI, Login to Harbor and Create Project
+description: Download, verify, and install the Harbor CLI, login to Harbor, and create a project
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  create-harbor-project:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup Harbor CLI @ latest
+        uses: qcserestipy/harbor-cli-setup@v0.0.2
+        with:
+          version: 'latest'          # or a tag like v0.0.19, or 'main'
+          build_from_source: 'false' # set to 'true' to build from source (requires Go)
+
+      # For more information on how to use the Harbor CLI, see
+      # https://github.com/goharbor/harbor-cli/blob/main/doc/cli-config/_index.md
+      # Note that the Harbor CLI creates a config file at ~/.harbor/config.yaml by default, which is used to store credentials and other settings.
+      - name: Login to Harbor
+        env:
+          HARBOR_PASSWORD: ${{ secrets.HARBOR_PASSWORD }}
+        run: |
+          harbor-cli login ${{ secrets.HARBOR_URL }} \
+                --username ${{ secrets.HARBOR_USERNAME }} \
+                --password "$HARBOR_PASSWORD"
+
+      # Note that harbor CLI commands producing a BubbleTea View (like harbor-cli project create) do so by opening a tty.
+      # Those are not supported in GitHub Actions, so we need to specify all necessary inputs to allow the command to run in a non-interactive environment like GitHub Actions.
+      - name: Create a Harbor Project
+        run: |
+          harbor-cli project create my-github-actions-project-${{ github.run_id }} --storage-limit 25GB

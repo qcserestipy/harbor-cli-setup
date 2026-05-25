@@ -1,0 +1,25 @@
+name: Setup Harbor CLI
+description: Download, verify, and install the Harbor CLI from source
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  setup-harbor-cli-main-from-source:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup Go for building from source
+        uses: actions/setup-go@v6
+        with:
+          go-version: '1.26.x' # Currently harbor-cli requires Go 1.26 or later to build from source
+          cache: true
+
+      - name: Setup Harbor CLI @ main (from source)
+        uses: qcserestipy/harbor-cli-setup@v0.0.2
+        with:
+          version: 'main'          # or a tag like v0.0.19, or 'main'
+          build_from_source: 'true' # set to 'true' to build from source (requires Go)

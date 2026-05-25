@@ -1,0 +1,19 @@
+name: Setup Harbor CLI
+description: Download, verify, and install the Harbor CLI
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  setup-harbor-cli-latest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup Harbor CLI @ latest
+        uses: qcserestipy/harbor-cli-setup@v0.0.2
+        with:
+          version: 'latest'          # or a tag like v0.0.19, or 'main'
+          build_from_source: 'false' # set to 'true' to build from source (requires Go)

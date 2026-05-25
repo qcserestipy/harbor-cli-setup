@@ -1,0 +1,30 @@
+name: Setup Harbor CLI and Login to Harbor
+description: Download, verify, and install the Harbor CLI and login to Harbor
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  setup-harbor-cli-latest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup Harbor CLI @ latest
+        uses: qcserestipy/harbor-cli-setup@v0.0.2
+        with:
+          version: 'latest'          # or a tag like v0.0.19, or 'main'
+          build_from_source: 'false' # set to 'true' to build from source (requires Go)
+
+      # For more information on how to use the Harbor CLI, see
+      # https://github.com/goharbor/harbor-cli/blob/main/doc/cli-config/_index.md
+      # Note that the Harbor CLI creates a config file at ~/.harbor/config.yaml by default, which is used to store credentials and other settings.
+      - name: Login to Harbor
+        env:
+          HARBOR_PASSWORD: ${{ secrets.HARBOR_PASSWORD }}
+        run: |
+          harbor-cli login ${{ secrets.HARBOR_URL }} \
+                --username ${{ secrets.HARBOR_USERNAME }} \
+                --password "$HARBOR_PASSWORD"
